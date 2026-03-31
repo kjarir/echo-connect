@@ -1,29 +1,45 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { MessageSquare, Phone, Key, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const AuthPage = () => {
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [loading, setLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const { signInWithEmail, verifyOTP } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes("@")) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+    setLoading(true);
+    try {
+      await signInWithEmail(email);
+      navigate("/chat"); // Redirect immediately in bypass mode
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await signup(name, email, password);
-      }
+      await verifyOTP(email, otp);
       navigate("/chat");
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -38,124 +54,136 @@ const AuthPage = () => {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <motion.div
             initial={{ y: -20 }}
             animate={{ y: 0 }}
             className="inline-flex items-center gap-3 mb-4"
           >
-            <div className="w-14 h-14 bg-primary border-3 border-foreground rounded-xl flex items-center justify-center brutal-shadow">
-              <MessageSquare className="w-7 h-7 text-primary-foreground" />
+            <div className="w-14 h-14 bg-primary border-4 border-foreground rounded-2xl flex items-center justify-center brutal-shadow">
+              <MessageSquare className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-4xl font-bold tracking-tight">BrutalChat</h1>
+            <h1 className="text-5xl font-black tracking-tighter">EchoConnect</h1>
           </motion.div>
-          <p className="text-muted-foreground text-lg font-medium">
-            Chat with attitude. No fluff.
+          <p className="text-muted-foreground text-lg font-bold">
+            Secure Encryption. Real-time Delivery.
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="brutal-card p-8">
-          {/* Mode Toggle */}
-          <div className="flex mb-8 border-3 border-foreground rounded-lg overflow-hidden">
-            <button
-              onClick={() => setMode("login")}
-              className={`flex-1 py-3 text-base font-bold transition-colors ${
-                mode === "login"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => setMode("signup")}
-              className={`flex-1 py-3 text-base font-bold transition-colors border-l-3 border-foreground ${
-                mode === "signup"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === "signup" && (
+        <div className="p-8 bg-card border-4 border-foreground brutal-shadow">
+          <AnimatePresence mode="wait">
+            {step === "email" ? (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
+                key="email-step"
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 20, opacity: 0 }}
               >
-                <label className="block text-sm font-bold mb-2 uppercase tracking-wider">Name</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="Your name"
-                    className="brutal-input w-full pl-12"
-                    required
-                  />
+                <div className="mb-8">
+                  <h2 className="text-3xl font-black mb-1">Welcome back</h2>
+                  <p className="text-sm text-muted-foreground font-bold">Enter your email to receive a secure code</p>
                 </div>
+
+                <form onSubmit={handleSendOTP} className="space-y-6">
+                  <div>
+                    <label className="block text-xs font-black mb-2 uppercase tracking-widest text-muted-foreground pl-1">Email Address</label>
+                    <div className="relative">
+                      <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="yourname@example.com"
+                        className="brutal-input w-full pl-12 h-14 text-md font-bold"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button type="submit" size="lg" className="w-full h-14 text-xl font-black border-3 border-foreground" disabled={loading}>
+                    {loading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                        className="w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full"
+                      />
+                    ) : (
+                      <>
+                        CONTINUE
+                        <ArrowRight className="w-6 h-6 translate-x-1" />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="otp-step"
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 20, opacity: 0 }}
+              >
+                <button 
+                  onClick={() => setStep("email")}
+                  className="flex items-center gap-1 text-xs font-black uppercase tracking-widest mb-8 hover:text-primary transition-colors pr-2 py-1 group"
+                >
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  Change Email
+                </button>
+
+                <div className="mb-8">
+                  <h2 className="text-3xl font-black mb-1">Verify Code</h2>
+                  <p className="text-sm text-muted-foreground font-bold truncate">Check inbox for {email}</p>
+                </div>
+
+                <form onSubmit={handleVerifyOTP} className="space-y-6">
+                  <div>
+                    <label className="block text-xs font-black mb-2 uppercase tracking-widest text-muted-foreground pl-1">Secure Code</label>
+                    <div className="relative">
+                      <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="text"
+                        maxLength={8}
+                        value={otp}
+                        onChange={e => setOtp(e.target.value)}
+                        placeholder="••••••••"
+                        className="brutal-input w-full pl-12 h-14 text-xl tracking-[0.3em] font-black text-center placeholder:tracking-normal"
+                        required
+                      />
+
+                    </div>
+                  </div>
+
+                  <Button type="submit" size="lg" className="w-full h-14 text-xl font-black border-3 border-foreground bg-primary text-primary-foreground" disabled={loading}>
+                    {loading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                        className="w-8 h-8 border-4 border-primary-foreground border-t-transparent rounded-full"
+                      />
+                    ) : (
+                      <>
+                        ENTER CONSOLE
+                        <ArrowRight className="w-6 h-6" />
+                      </>
+                    )}
+                  </Button>
+                </form>
               </motion.div>
             )}
-
-            <div>
-              <label className="block text-sm font-bold mb-2 uppercase tracking-wider">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="brutal-input w-full pl-12"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold mb-2 uppercase tracking-wider">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="brutal-input w-full pl-12"
-                  required
-                  minLength={6}
-                />
-              </div>
-            </div>
-
-            <Button type="submit" size="lg" className="w-full" disabled={loading}>
-              {loading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
-                />
-              ) : (
-                <>
-                  {mode === "login" ? "Let's Go" : "Create Account"}
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </Button>
-          </form>
+          </AnimatePresence>
         </div>
 
-        <p className="text-center text-muted-foreground mt-6 text-sm">
-          Bold design. Real-time messaging. Zero BS.
+        <p className="text-center text-muted-foreground mt-10 text-xs font-black uppercase tracking-widest opacity-40">
+          Peer-to-Peer. Encrypted. Eternal.
         </p>
       </motion.div>
     </div>
   );
 };
 
+
+
 export default AuthPage;
+

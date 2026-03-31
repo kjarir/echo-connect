@@ -12,16 +12,19 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="h-screen bg-background flex items-center justify-center"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   if (!isAuthenticated) return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="h-screen bg-background flex items-center justify-center"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   if (isAuthenticated) return <Navigate to="/chat" replace />;
   return <>{children}</>;
 };
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,13 +33,19 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <ChatProvider>
-          <BrowserRouter>
+          <BrowserRouter 
+            future={{ 
+              v7_startTransition: true,
+              v7_relativeSplatPath: true 
+            }}
+          >
             <Routes>
               <Route path="/" element={<PublicRoute><AuthPage /></PublicRoute>} />
               <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+
         </ChatProvider>
       </AuthProvider>
     </TooltipProvider>
