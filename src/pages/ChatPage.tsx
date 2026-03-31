@@ -22,8 +22,7 @@ const ChatPage = () => {
   const filteredChats = chats.filter(chat => {
     if (!search) return true;
     const userId = chat.participants.find(p => p !== "1") || "";
-    const { mockUsers } = require("@/data/mockData");
-    const user = mockUsers.find((u: any) => u.id === userId);
+    const user = getUser(userId);
     return user?.name.toLowerCase().includes(search.toLowerCase());
   });
 
