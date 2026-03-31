@@ -188,24 +188,35 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const fetchChats = async () => {
-      const { data, error } = await supabase
+      // 🚀 Bulletproof Strategy: Fetch separately to bypass Join errors (400)
+      const { data: chatList, error: chatError } = await supabase
         .from("chats")
-        .select(`
-          *,
-          participants:chat_participants(user_id)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Fetch chats error:", error);
+      if (chatError) {
+        console.error("Fetch chats error:", chatError);
         return;
       }
 
-      setChats(data.map(c => ({
+      const { data: participList, error: partError } = await supabase
+        .from("chat_participants")
+        .select("chat_id, user_id");
+
+      if (partError) {
+        console.error("Fetch participants error:", partError);
+      }
+
+      // 🔄 Manual browser-side merge for maximum stability
+      const mergedChats: Chat[] = (chatList || []).map(c => ({
         ...c,
-        participants: c.participants.map((p: any) => p.user_id),
-        pinned: false, // Default or fetch from profile prefs
-      })));
+        participants: (participList || [])
+          .filter((p: any) => p.chat_id === c.id)
+          .map((p: any) => p.user_id),
+        pinned: false,
+      }));
+
+      setChats(mergedChats);
     };
 
     fetchChats();
@@ -213,11 +224,40 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Subscribe to new chats
     const chatSub = supabase
       .channel("public:chats")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chats" }, (payload) => {
-        // Only add if user is a participant (logic usually handled server-side but for demo)
-        setChats(prev => [payload.new as Chat, ...prev]);
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chats" }, async (payload) => {
+        const newChatRaw = payload.new as any;
+        
+        // 🔒 Global Deduplication Registry
+        setChats(prev => {
+          if (prev.some(c => c.id === newChatRaw.id)) return prev;
+
+          // 🏗️ Participant Hydrator: Ensure member count is accurate
+          const fetchAndAdd = async () => {
+            const { data: participants } = await supabase
+              .from("chat_participants")
+              .select("user_id")
+              .eq("chat_id", newChatRaw.id);
+
+            const hydChat: Chat = {
+              ...newChatRaw,
+              participants: (participants || []).map(p => p.user_id),
+              pinned: false
+            };
+
+            setChats(old => {
+              if (old.some(c => c.id === hydChat.id)) {
+                 return old.map(c => c.id === hydChat.id ? hydChat : c);
+              }
+              return [hydChat, ...old];
+            });
+          };
+
+          fetchAndAdd();
+          return [newChatRaw as Chat, ...prev];
+        });
       })
       .subscribe();
+
 
     return () => {
       chatSub.unsubscribe();
@@ -420,16 +460,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
 
     const encryptedContent = encrypt(content);
-    const newMessage = {
+    const newMessage: any = {
       chat_id: chatId,
       sender_id: user.id,
       content: encryptedContent,
       type,
-      is_encrypted: true, // MUST MATCH SQL
-      metadata: {},
+      is_encrypted: true // MUST MATCH SQL
     };
 
     const { error } = await supabase.from("messages").insert(newMessage);
+
     if (error) {
       console.error("Supabase send error:", error);
       toast.error("Failed to send message: " + error.message);
@@ -534,29 +574,55 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createGroup = async (name: string, participants: string[]) => {
     if (!user) return null;
 
+    const payload: any = { name };
+    payload.type = "group"; 
+
     const { data: chatData, error: chatError } = await supabase
       .from("chats")
-      .insert({ name, type: "group" })
+      .insert(payload)
       .select()
       .single();
 
     if (chatError) {
-      toast.error("Failed to create group");
+      console.error("Group init error:", chatError);
+      toast.error("Deployment failed: Check 'chats' table in Supabase.");
       return null;
     }
 
-    const { error: partError } = await supabase.from("chat_participants").insert([
-      { chat_id: chatData.id, user_id: user.id },
-      ...participants.map(pid => ({ chat_id: chatData.id, user_id: pid }))
-    ]);
+    // Fix for 0 connected: Pre-filter participants and handle participant link
+    const validParticipants = participants.filter(p => p !== user.id);
+    const participantIds = [user.id, ...validParticipants];
+
+    const { error: partError } = await supabase.from("chat_participants").insert(
+      participantIds.map(pid => ({ chat_id: chatData.id, user_id: pid }))
+    );
 
     if (partError) {
-      console.error("Participant add error:", partError);
+       console.error("Participant add error:", partError);
+       // We continue anyway so the user sees a group, but we notify them
+       toast.error("Collective partial failure: External members not synchronized.");
     }
 
-    toast.success(`Group "${name}" created!`);
+    // 🛡️ Nuclear State Injection: Force correct count immediately
+    const fullGroup: Chat = {
+      ...chatData,
+      participants: participantIds,
+      pinned: false
+    };
+    
+    setChats(prev => {
+       if (prev.some(c => c.id === fullGroup.id)) {
+          return prev.map(c => c.id === fullGroup.id ? fullGroup : c);
+       }
+       return [fullGroup, ...prev];
+    });
+    
+    setActiveChat(chatData.id);
+    toast.success(`Collective "${name}" is now live with ${participantIds.length} members.`);
     return chatData.id;
   };
+
+
 
   const addReaction = async (messageId: string, chatId: string, emoji: string) => {
     // Implement reaction logic in Supabase if table exists

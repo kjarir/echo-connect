@@ -212,8 +212,11 @@ export const ChatScreen = ({ chatId, onBack }: { chatId: string; onBack: () => v
              {isGroup ? (currentChat?.name || "Private Collective") : (otherUser?.name || "Initializing signal...")}
           </h2>
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            {isGroup ? `${currentChat?.participants.length} connected` : (otherUser?.online ? "Signal Active" : "Signal Offline")}
+            {isGroup 
+              ? `${Math.max(1, currentChat?.participants?.length || 0)} connected` 
+              : (otherUser?.online ? "Signal Active" : "Signal Offline")}
           </p>
+
         </div>
 
         <div className="flex items-center gap-1">

@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -135,7 +136,9 @@ const ChatPage = () => {
               <DialogContent className="border-4 border-foreground brutal-shadow p-6">
                 <DialogHeader>
                   <DialogTitle className="text-3xl font-black tracking-tighter">New Collective</DialogTitle>
+                  <DialogDescription className="sr-only">Industrial deployment portal for secure communication groups.</DialogDescription>
                 </DialogHeader>
+
                 <div className="space-y-6 pt-4">
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Group Identity</label>
