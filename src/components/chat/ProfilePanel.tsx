@@ -128,7 +128,7 @@ export const ProfilePanel = () => {
                     </div>
                     <div className="flex-1">
                        <p className="font-black text-xs uppercase tracking-tight leading-none mb-1">{item.label}</p>
-                       <p className="text-[10px] font-bold text-muted-foreground italic">{item.val || "Real-time sync active"}</p>
+                       <p className="text-[10px] font-bold text-muted-foreground">{item.val || "Real-time sync active"}</p>
                     </div>
                     {item.toggle && <Switch checked={true} className="data-[state=checked]:bg-primary border-2 border-foreground" />}
                  </div>
@@ -146,20 +146,20 @@ export const ProfilePanel = () => {
             <div className="space-y-4">
                <div className="p-4 rounded-2xl border-3 border-foreground bg-card brutal-shadow-xs space-y-4">
                   <div className="flex items-center justify-between">
-                     <div><p className="font-black text-xs uppercase">Message Tones</p><p className="text-[10px] text-muted-foreground font-bold italic">Ping Frequency</p></div>
+                     <div><p className="font-black text-xs uppercase">Message Tones</p><p className="text-[10px] text-muted-foreground font-bold">Ping Frequency</p></div>
                      <Switch checked={true} className="data-[state=checked]:bg-primary border-2 border-foreground" />
                   </div>
                   <div className="flex items-center justify-between">
-                     <div><p className="font-black text-xs uppercase">Call Ringtone</p><p className="text-[10px] text-muted-foreground font-bold italic">High Pitch Signal</p></div>
+                     <div><p className="font-black text-xs uppercase">Call Ringtone</p><p className="text-[10px] text-muted-foreground font-bold">High Pitch Signal</p></div>
                      <Switch checked={true} className="data-[state=checked]:bg-primary border-2 border-foreground" />
                   </div>
                   <div className="flex items-center justify-between">
-                     <div><p className="font-black text-xs uppercase">Haptic Feedback</p><p className="text-[10px] text-muted-foreground font-bold italic">Tactile Alerts</p></div>
+                     <div><p className="font-black text-xs uppercase">Haptic Feedback</p><p className="text-[10px] text-muted-foreground font-bold">Tactile Alerts</p></div>
                      <Switch checked={true} className="data-[state=checked]:bg-primary border-2 border-foreground" />
                   </div>
                </div>
                <div className="p-4 rounded-2xl border-3 border-destructive/20 bg-destructive/5 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-destructive italic">Mute modes can be overridden by urgent SOS signals.</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-destructive">Mute modes can be overridden by urgent SOS signals.</p>
                </div>
             </div>
           </motion.div>
@@ -171,12 +171,12 @@ export const ProfilePanel = () => {
             
             <div className="relative group">
                <div className="w-24 h-24 bg-primary border-4 border-foreground rounded-3xl brutal-shadow flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-                  <span className="text-4xl font-black text-primary-foreground italic">E</span>
+                  <span className="text-4xl font-black text-primary-foreground">E</span>
                </div>
             </div>
 
             <div className="text-center space-y-2">
-               <h1 className="text-3xl font-black italic tracking-tighter uppercase">EchoConnect</h1>
+               <h1 className="text-3xl font-black tracking-tighter uppercase">EchoConnect</h1>
                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground opacity-50">Industrial Grade Signal Hub</p>
             </div>
 
@@ -193,7 +193,7 @@ export const ProfilePanel = () => {
                ))}
             </div>
 
-            <p className="text-[10px] text-center font-bold text-muted-foreground px-6 italic">Built with uncompromising aesthetics and brutal efficiency for the next generation of communication.</p>
+            <p className="text-[10px] text-center font-bold text-muted-foreground px-6">Built with uncompromising aesthetics and brutal efficiency for the next generation of communication.</p>
           </motion.div>
         )}
       </AnimatePresence>
