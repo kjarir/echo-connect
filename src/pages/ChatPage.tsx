@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useChat } from "@/contexts/ChatContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChatListItem } from "@/components/chat/ChatListItem";
+import { getUser } from "@/components/chat/UserAvatar";
 import { ChatScreen } from "@/components/chat/ChatScreen";
 import { StatusPanel } from "@/components/chat/StatusPanel";
 import { ProfilePanel } from "@/components/chat/ProfilePanel";
