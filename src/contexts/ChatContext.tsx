@@ -188,24 +188,34 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const fetchChats = async () => {
-      // 🚀 Bulletproof Strategy: Fetch separately to bypass Join errors (400)
-      const { data: chatList, error: chatError } = await supabase
-        .from("chats")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // 🕵️ Step 1: Fetch ONLY my shared signal IDs
+      const { data: myParticipations } = await supabase
+        .from("chat_participants")
+        .select("chat_id")
+        .eq("user_id", user.id);
 
-      if (chatError) {
-        console.error("Fetch chats error:", chatError);
+      const myChatIds = (myParticipations || []).map(p => p.chat_id);
+      if (myChatIds.length === 0) {
+        setChats([]);
         return;
       }
 
-      const { data: participList, error: partError } = await supabase
-        .from("chat_participants")
-        .select("chat_id, user_id");
+      // 🕵️ Step 2: Hydrate only my authorized chats
+      const { data: chatList, error: chatError } = await supabase
+        .from("chats")
+        .select("*")
+        .in("id", myChatIds)
+        .order("created_at", { ascending: false });
 
-      if (partError) {
-        console.error("Fetch participants error:", partError);
+      if (chatError) {
+        console.error("Authorized Fetch Error:", chatError);
+        return;
       }
+
+      const { data: participList } = await supabase
+        .from("chat_participants")
+        .select("chat_id, user_id")
+        .in("chat_id", myChatIds);
 
       // 🔄 Manual browser-side merge for maximum stability
       const mergedChats: Chat[] = (chatList || []).map(c => ({
@@ -221,47 +231,35 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     fetchChats();
 
-    // Subscribe to new chats
-    const chatSub = supabase
-      .channel("public:chats")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chats" }, async (payload) => {
-        const newChatRaw = payload.new as any;
-        
-        // 🔒 Global Deduplication Registry
-        setChats(prev => {
-          if (prev.some(c => c.id === newChatRaw.id)) return prev;
+    // 🛡️ Stealth Subscription: Only listen for participations LINKED to me
+    const participSub = supabase
+      .channel("my:signals")
+      .on("postgres_changes", { 
+        event: "INSERT", 
+        schema: "public", 
+        table: "chat_participants",
+        filter: `user_id=eq.${user.id}` 
+      }, async (payload) => {
+        // I have been added to a new chat! Hydrate and add to list.
+        const newPart = payload.new as any;
+        const { data: chatData } = await supabase
+          .from("chats")
+          .select("*")
+          .eq("id", newPart.chat_id)
+          .single();
 
-          // 🏗️ Participant Hydrator: Ensure member count is accurate
-          const fetchAndAdd = async () => {
-            const { data: participants } = await supabase
-              .from("chat_participants")
-              .select("user_id")
-              .eq("chat_id", newChatRaw.id);
-
-            const hydChat: Chat = {
-              ...newChatRaw,
-              participants: (participants || []).map(p => p.user_id),
-              pinned: false
-            };
-
-            setChats(old => {
-              if (old.some(c => c.id === hydChat.id)) {
-                 return old.map(c => c.id === hydChat.id ? hydChat : c);
-              }
-              return [hydChat, ...old];
-            });
-          };
-
-          fetchAndAdd();
-          return [newChatRaw as Chat, ...prev];
-        });
+        if (chatData) {
+          // Re-trigger fetch to get full participants list safely
+          fetchChats();
+        }
       })
       .subscribe();
 
 
     return () => {
-      chatSub.unsubscribe();
+      participSub.unsubscribe();
     };
+
   }, [user]);
 
   const userRef = useRef(user);
