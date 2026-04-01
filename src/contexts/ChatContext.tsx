@@ -556,9 +556,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Create new chat
     const { data: newChat, error: chatError } = await supabase
       .from("chats")
-      .insert({ is_group: false })
+      .insert({ type: "private" })
       .select()
       .single();
+
 
     if (chatError) throw chatError;
 
