@@ -72,12 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const init = async () => {
-      const saved = localStorage.getItem("echo_dev_user");
+      const saved = localStorage.getItem("bchat_dev_user");
       if (saved) {
         const parsed = JSON.parse(saved);
         // FORCE LOGOUT if the ID is the old Base64 format (no hyphens)
         if (!parsed.id || !parsed.id.includes("-")) {
-           localStorage.removeItem("echo_dev_user");
+           localStorage.removeItem("bchat_dev_user");
            setUser(null);
         } else {
            setUser(parsed);
@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
        return;
     }
     setUser(profile);
-    localStorage.setItem("echo_dev_user", JSON.stringify(profile));
+    localStorage.setItem("bchat_dev_user", JSON.stringify(profile));
     toast.success("Identity established: " + email);
   }, []);
 
@@ -114,14 +114,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = useCallback(async (updates: Partial<User>) => {
     if (!user) return;
     setUser({ ...user, ...updates });
-    localStorage.setItem("echo_dev_user", JSON.stringify({ ...user, ...updates }));
+    localStorage.setItem("bchat_dev_user", JSON.stringify({ ...user, ...updates }));
     
     // Attempt DB sync
     await supabase.from("profiles").update(updates).eq("id", user.id);
   }, [user]);
 
   const logout = useCallback(async () => {
-    localStorage.removeItem("echo_dev_user");
+    localStorage.removeItem("bchat_dev_user");
     await supabase.auth.signOut();
     setUser(null);
   }, []);

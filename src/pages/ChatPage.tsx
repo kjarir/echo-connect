@@ -122,9 +122,9 @@ const ChatPage = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-black tracking-tighter flex items-center gap-2">
             <span className="w-9 h-9 bg-primary border-3 border-foreground rounded-xl flex items-center justify-center brutal-shadow-sm">
-              <span className="text-primary-foreground text-lg font-black">E</span>
+              <span className="text-primary-foreground text-lg font-black">B</span>
             </span>
-            EchoConnect
+            BChat
           </h1>
           <div className="flex gap-1">
             <Dialog open={isGroupOpen} onOpenChange={setIsGroupOpen}>

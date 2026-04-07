@@ -54,7 +54,7 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
-const SECRET_KEY = "echo-connect-prod-key"; // In production, this should be derived per-chat
+const SECRET_KEY = "bchat-prod-key"; // In production, this should be derived per-chat
 
 export const useChat = () => {
   const ctx = useContext(ChatContext);
@@ -386,7 +386,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user?.id) return;
 
     const initPeer = () => {
-      console.log("🚀 Echo: Initializing Durable Service for", user.id);
+      console.log("🚀 BChat: Initializing Durable Service for", user.id);
       
       const peer = new Peer(user.id, {
         config: {
@@ -437,7 +437,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       if (peerInitTimeoutRef.current) clearTimeout(peerInitTimeoutRef.current);
-      console.log("🛑 Echo: Session cleanup requested.");
+      console.log("🛑 BChat: Session cleanup requested.");
       // We don't destroy immediately to prevent flicker-break
       setTimeout(() => peerRef.current?.destroy(), 500);
     };

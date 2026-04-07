@@ -98,7 +98,7 @@ export const ProfilePanel = () => {
               </button>
               <button onClick={() => setView("about")} className="w-full flex items-center gap-4 p-4 rounded-2xl border-3 border-foreground bg-card brutal-shadow-sm hover:translate-x-1 hover:translate-y-[-2px] transition-all">
                 <div className="p-2 bg-secondary/20 border-2 border-foreground rounded-lg"><Info className="w-5 h-5" /></div>
-                <div className="flex-1 text-left"><p className="font-black text-sm uppercase tracking-tight">Echo Node Stats</p><p className="text-[10px] font-bold text-muted-foreground">Version 2.0-Alpha</p></div>
+                <div className="flex-1 text-left"><p className="font-black text-sm uppercase tracking-tight">BChat Node Stats</p><p className="text-[10px] font-bold text-muted-foreground">Version 2.0-Alpha</p></div>
                 <ChevronRight className="w-4 h-4 opacity-30" />
               </button>
             </div>
@@ -171,12 +171,12 @@ export const ProfilePanel = () => {
             
             <div className="relative group">
                <div className="w-24 h-24 bg-primary border-4 border-foreground rounded-3xl brutal-shadow flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-                  <span className="text-4xl font-black text-primary-foreground">E</span>
+                  <span className="text-4xl font-black text-primary-foreground">B</span>
                </div>
             </div>
 
             <div className="text-center space-y-2">
-               <h1 className="text-3xl font-black tracking-tighter uppercase">EchoConnect</h1>
+               <h1 className="text-3xl font-black tracking-tighter uppercase">BChat</h1>
                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground opacity-50">Industrial Grade Signal Hub</p>
             </div>
 

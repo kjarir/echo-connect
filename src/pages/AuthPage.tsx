@@ -63,7 +63,7 @@ const AuthPage = () => {
             <div className="w-14 h-14 bg-primary border-4 border-foreground rounded-2xl flex items-center justify-center brutal-shadow">
               <MessageSquare className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-5xl font-black tracking-tighter">EchoConnect</h1>
+            <h1 className="text-5xl font-black tracking-tighter">BChat</h1>
           </motion.div>
           <p className="text-muted-foreground text-lg font-bold">
             Secure Encryption. Real-time Delivery.
