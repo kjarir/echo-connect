@@ -15,6 +15,7 @@ export interface Message {
   content: string;
   created_at: string;
   type: "text" | "image" | "video" | "audio" | "document" | "file";
+  status?: "sent" | "delivered" | "read";
   reply_to?: string;
   reactions?: { emoji: string; user_id: string }[];
   is_encrypted?: boolean;

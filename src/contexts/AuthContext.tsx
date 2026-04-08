@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -114,13 +115,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (updates: Partial<User>) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", user.id);
+    if (error) {
+      toast.error("Failed to update profile");
+      return;
+    }
+    setUser({ ...user, ...updates });
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, signUp, signIn, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, signUp, signIn, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
