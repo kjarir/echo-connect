@@ -18,22 +18,26 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = email.trim();
-    const cleanPassword = password.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
 
-    if (cleanPassword.length < 6) {
+    if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
     try {
-      if (mode === "login") {
-        await signIn(cleanEmail, cleanPassword);
-      } else {
-        await signUp(cleanEmail, cleanPassword, name || cleanEmail.split("@")[0]);
+      const result = mode === "login"
+        ? await signIn(cleanEmail, password)
+        : await signUp(cleanEmail, password, cleanName || cleanEmail.split("@")[0]);
+
+      if (result.authenticated) {
+        navigate("/chat");
+      } else if (result.requiresEmailVerification) {
+        setMode("login");
+        setPassword("");
       }
-      navigate("/chat");
     } catch (err: any) {
       console.error(err);
     } finally {
